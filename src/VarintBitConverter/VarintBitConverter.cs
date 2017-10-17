@@ -1,4 +1,7 @@
-﻿namespace System
+﻿using System.IO;
+
+// ReSharper disable once CheckNamespace
+namespace System
 {
     public class VarintBitConverter
     {
@@ -206,6 +209,170 @@
             }
 
             throw new ArgumentException("Cannot decode varint from byte array.", "bytes");
+        }
+
+
+        /// <summary>
+        /// Returns 16-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>16-bit signed value</returns>
+        public static void WriteInt16(BinaryWriter writer, Int16 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 16-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>16-bit signed value</returns>
+        public static void WriteUInt16(BinaryWriter writer, UInt16 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 32-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>32-bit signed value</returns>
+        public static void WriteInt32(BinaryWriter writer, Int32 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 32-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>32-bit signed value</returns>
+        public static void WriteUInt32(BinaryWriter writer, UInt32 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 64-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>64-bit signed value</returns>
+        public static void WriteInt64(BinaryWriter writer, Int64 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 64-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="writer">Varint encoded array of bytes.</param>
+        /// <param name="value"></param>
+        /// <returns>64-bit signed value</returns>
+        public static void WriteUInt64(BinaryWriter writer, UInt64 value)
+        {
+            var encoded = GetVarintBytes(value);
+            writer.Write(encoded);
+        }
+
+        /// <summary>
+        /// Returns 16-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>16-bit signed value</returns>
+        public static short ReadInt16(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 16);
+            return (short)DecodeZigZag(zigzag);
+        }
+
+        /// <summary>
+        /// Returns 16-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>16-bit signed value</returns>
+        public static ushort ReadUInt16(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 16);
+            return (ushort)zigzag;
+        }
+
+        /// <summary>
+        /// Returns 32-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>32-bit signed value</returns>
+        public static int ReadInt32(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 32);
+            return (int)DecodeZigZag(zigzag);
+        }
+
+        /// <summary>
+        /// Returns 32-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>32-bit signed value</returns>
+        public static uint ReadUInt32(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 32);
+            return (uint)zigzag;
+        }
+
+        /// <summary>
+        /// Returns 64-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>64-bit signed value</returns>
+        public static long ReadInt64(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 64);
+            return DecodeZigZag(zigzag);
+        }
+
+        /// <summary>
+        /// Returns 64-bit signed value from varint encoded array of bytes.
+        /// </summary>
+        /// <param name="reader">Varint encoded array of bytes.</param>
+        /// <returns>64-bit signed value</returns>
+        public static ulong ReadUInt64(BinaryReader reader)
+        {
+            var zigzag = ReadTarget(reader, 64);
+            return zigzag;
+        }
+
+        private static ulong ReadTarget(BinaryReader reader, int sizeBites)
+        {
+            var shift = 0;
+            ulong result = 0;
+
+            while (true)
+            {
+                ulong byteValue = reader.ReadByte();
+                ulong tmp = byteValue & 0x7f;
+                result |= tmp << shift;
+
+                if (shift > sizeBites)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(sizeBites), "Byte array is too large.");
+                }
+
+                if ((byteValue & 0x80) != 0x80)
+                {
+                    return result;
+                }
+
+                shift += 7;
+            }
         }
     }
 }
